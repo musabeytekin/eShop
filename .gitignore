@@ -1,0 +1,11 @@
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+src/Services/Identity/Identity.API/updateUI.ps1
+*/obj/
+*/bin/
+
+.vs
+.idea
