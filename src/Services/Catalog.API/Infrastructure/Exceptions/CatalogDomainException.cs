@@ -1,4 +1,4 @@
-namespace Catalog.API.Exceptions;
+namespace Catalog.API.Infrastructure.Exceptions;
 
 public class CatalogDomainException : Exception
 {

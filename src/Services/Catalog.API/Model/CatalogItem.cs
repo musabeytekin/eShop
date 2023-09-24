@@ -1,4 +1,4 @@
-using Catalog.API.Exceptions;
+using Catalog.API.Infrastructure.Exceptions;
 
 namespace Catalog.API.Model;
 
