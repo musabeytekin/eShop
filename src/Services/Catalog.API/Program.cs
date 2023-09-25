@@ -1,5 +1,12 @@
-var builder = WebApplication.CreateBuilder(args);
 
+
+using Catalog.API.Extensions;
+using Services.Common;
+
+var builder = WebApplication.CreateBuilder(args);
+builder.AddServiceDefaults();
+builder.Services.AddDbContexts(builder.Configuration);
+builder.Services.AddApplicationOptions(builder.Configuration);
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -8,12 +15,8 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+app.UseDefaultServices();
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 
 app.UseHttpsRedirection();
 
@@ -21,4 +24,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();
