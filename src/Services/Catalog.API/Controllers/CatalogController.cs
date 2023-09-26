@@ -71,6 +71,128 @@ public class CatalogController : ControllerBase
         return items;
     }
 
+    // GET api/v1/[controller]/items/{id}
+
+    [HttpGet]
+    [Route("items/{id:int}")]
+    public async Task<IActionResult> ItemByIdAsync(int id)
+    {
+        if (id <= 0)
+        {
+            return BadRequest();
+        }
+
+        var item = await _catalogDbContext.CatalogItems.SingleOrDefaultAsync(ci => ci.Id == id);
+        var baseUri = _settings.PicBaseUrl;
+        
+        item.FillProductUrl(baseUri);
+
+        if (item != null)
+            return Ok(item);
+
+        return NotFound();
+    }
+    
+    // GET api/v1/[controller]/items/withname/{name}
+    [HttpGet]
+    [Route("items/withname/{name:minlength(1)}")]
+    public async Task<ActionResult<PaginatedItemsViewModel<CatalogItem>>> ItemsWithNameAsync(string name,
+        [FromQuery] int pageSize = 10, [FromQuery] int pageIndex = 0)
+    {
+        var totalItems = await _catalogDbContext.CatalogItems
+            .Where(c => c.Name.StartsWith(name))
+            .LongCountAsync();
+
+        var itemsOnPage = await _catalogDbContext.CatalogItems
+            .Where(c => c.Name.StartsWith(name))
+            .OrderBy(c => c.Name)
+            .Skip(pageSize * pageIndex)
+            .Take(pageSize)
+            .ToListAsync();
+
+        itemsOnPage = ChangeUriPlaceholder(itemsOnPage);
+
+        var model = new PaginatedItemsViewModel<CatalogItem>(pageIndex, pageSize, totalItems, itemsOnPage);
+
+        return Ok(model);
+    }
+    
+    // GET api/v1/[controller]/items/type/1/brand[?pageSize=3&pageIndex=10]
+    [HttpGet]
+    [Route("items/type/{catalogTypeId}/brand/{catalogBrandId:int?}")]
+    public async Task<ActionResult<PaginatedItemsViewModel<CatalogItem>>> ItemsByTypeIdAndBrandIdAsync(int catalogTypeId, int? catalogBrandId, [FromQuery] int pageSize = 10, [FromQuery] int pageIndex = 0)
+    {
+        // IQueryable to hold the root query, because the query needs to be built dynamically based on the presence of catalogBrandId
+        // root = SELECT * FROM CatalogItems
+        var root = (IQueryable<CatalogItem>)_catalogDbContext.CatalogItems;
+
+        // root = Select * FROM CatalogItems WHERE CatalogTypeId = catalogTypeId
+        root = root.Where(ci => ci.CatalogTypeId == catalogTypeId);
+
+        // if catalogBrandId has a value, then add the where clause to the root query
+        // root = Select * FROM CatalogItems WHERE CatalogTypeId = catalogTypeId AND CatalogBrandId = catalogBrandId
+        if (catalogBrandId.HasValue)
+        {
+            root = root.Where(ci => ci.CatalogBrandId == catalogBrandId);
+        }
+
+        // totalItems = SELECT COUNT(*) FROM root
+        var totalItems = await root
+            .LongCountAsync();
+
+        // now the root query sends to the database and returns the results
+        var itemsOnPage = await root
+            .Skip(pageSize * pageIndex)
+            .Take(pageSize)
+            .ToListAsync();
+
+        itemsOnPage = ChangeUriPlaceholder(itemsOnPage);
+
+        return new PaginatedItemsViewModel<CatalogItem>(pageIndex, pageSize, totalItems, itemsOnPage);
+    }
+    
+    // GET api/v1/[controller]/items/type/all/brand[?pageSize=3&pageIndex=10]
+    [HttpGet]
+    [Route("items/type/all/brand/{catalogBrandId:int?}")]
+    public async Task<ActionResult<PaginatedItemsViewModel<CatalogItem>>> ItemsByBrandIdAsync(int? catalogBrandId, [FromQuery] int pageSize = 10, [FromQuery] int pageIndex = 0)
+    {
+        var root = (IQueryable<CatalogItem>)_catalogDbContext.CatalogItems;
+
+        if (catalogBrandId.HasValue)
+        {
+            root = root.Where(ci => ci.CatalogBrandId == catalogBrandId);
+        }
+
+        var totalItems = await root
+            .LongCountAsync();
+
+        var itemsOnPage = await root
+            .Skip(pageSize * pageIndex)
+            .Take(pageSize)
+            .ToListAsync();
+
+        itemsOnPage = ChangeUriPlaceholder(itemsOnPage);
+
+        return new PaginatedItemsViewModel<CatalogItem>(pageIndex, pageSize, totalItems, itemsOnPage);
+    }
+    
+    // GET api/v1/[controller]/CatalogTypes
+    [HttpGet]
+    [Route("catalogtypes")]
+    public async Task<ActionResult<List<CatalogType>>> CatalogTypesAsync()
+    {
+        return await _catalogDbContext.CatalogTypes.ToListAsync();
+    }
+    
+    // GET api/v1/[controller]/CatalogBrands
+    [HttpGet]
+    [Route("catalogbrands")]
+    public async Task<ActionResult<List<CatalogBrand>>> CatalogBrandsAsync()
+    {
+        return await _catalogDbContext.CatalogBrands.ToListAsync();
+    }
+    
+
 
     private List<CatalogItem> ChangeUriPlaceholder(List<CatalogItem> items)
     {
