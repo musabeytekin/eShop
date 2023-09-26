@@ -1,5 +1,4 @@
-
-
+using Catalog.API;
 using Catalog.API.Extensions;
 using Services.Common;
 
@@ -23,5 +22,15 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
+    var settings = scope.ServiceProvider.GetRequiredService<IOptions<CatalogSettings>>();
+    var logger = app.Services.GetService<ILogger<CatalogDbContextSeed>>();
+
+    await context.Database.MigrateAsync();
+    await new CatalogDbContextSeed().SeedAsync(context, app.Environment, settings, logger);
+}
 
 await app.RunAsync();
