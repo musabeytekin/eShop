@@ -1,11 +1,6 @@
-using Catalog.API.Extensions;
-using CatalogApi;
-using Google.Protobuf.WellKnownTypes;
-using Grpc.Core;
-using Microsoft.AspNetCore.Http.HttpResults;
-
 namespace Catalog.API.Grpc;
 
+using CatalogApi;
 using static CatalogApi.Catalog;
 
 public class CatalogService : CatalogBase
@@ -74,17 +69,17 @@ public class CatalogService : CatalogBase
             // convert the CatalogItem to CatalogItemResponse
             return this.MapToResponse(items);
         }
-        
+
         var totalItems = await _catalogDbContext.CatalogItems.LongCountAsync();
         var itemsOnPage = await _catalogDbContext.CatalogItems
             .OrderBy(c => c.Name)
             .Skip(request.PageIndex * request.PageSize)
             .Take(request.PageSize)
             .ToListAsync();
-        
+
         var model = this.MapToResponse(itemsOnPage, totalItems, request.PageIndex, request.PageSize);
         context.Status = new Status(StatusCode.OK, string.Empty);
-        
+
         return model;
     }
 

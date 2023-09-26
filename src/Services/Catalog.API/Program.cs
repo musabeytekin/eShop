@@ -1,21 +1,25 @@
-using Catalog.API;
-using Catalog.API.Extensions;
-using Services.Common;
+using Catalog.API.Apis;
+using Catalog.API.Grpc;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.AddServiceDefaults();
+builder.Services.AddGrpc();
+
 builder.Services.AddDbContexts(builder.Configuration);
+
 builder.Services.AddApplicationOptions(builder.Configuration);
-// Add services to the container.
 
 builder.Services.AddControllers();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
 app.UseDefaultServices();
-// Configure the HTTP request pipeline.
+app.MapPicApi();
+app.MapGrpcService<CatalogService>();
 
 app.UseHttpsRedirection();
 

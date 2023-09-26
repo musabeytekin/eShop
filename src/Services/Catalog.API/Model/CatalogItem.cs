@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Catalog.API.Infrastructure.Exceptions;
 
 namespace Catalog.API.Model;
@@ -17,10 +18,12 @@ public class CatalogItem
     
     public int CatalogTypeId { get; set; }
 
+    [JsonIgnore]
     public CatalogType CatalogType { get; set; }
 
     public int CatalogBrandId { get; set; }
 
+    [JsonIgnore]
     public CatalogBrand CatalogBrand { get; set; }
 
     //Current quantity in stock

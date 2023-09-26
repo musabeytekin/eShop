@@ -1,6 +1,4 @@
-using System.Globalization;
-using System.Text.RegularExpressions;
-using Catalog.API.Extensions;
+
 
 namespace Catalog.API.Infrastructure;
 
