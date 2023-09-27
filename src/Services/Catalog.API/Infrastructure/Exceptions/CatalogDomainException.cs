@@ -1,5 +1,9 @@
 namespace Catalog.API.Infrastructure.Exceptions;
 
+
+/// <summary>
+/// Exception type for app exceptions
+/// </summary>
 public class CatalogDomainException : Exception
 {
     public CatalogDomainException()

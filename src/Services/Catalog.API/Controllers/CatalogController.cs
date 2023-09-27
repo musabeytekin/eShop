@@ -18,6 +18,9 @@ public class CatalogController : ControllerBase
     // GET api/v1/[controller]/items[?pageSize=3&pageIndex=10]
     [HttpGet]
     [Route("items")]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(PaginatedItemsViewModel<CatalogItem>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<CatalogItem>), StatusCodes.Status200OK)]
     public async Task<IActionResult> ItemsAsync([FromQuery] int pageSize = 10, [FromQuery] int pageIndex = 0,
         string ids = null)
     {
@@ -75,6 +78,9 @@ public class CatalogController : ControllerBase
     [HttpGet]
     [Route("items/{id:int}")]
     [ActionName("ItemByIdAsync")]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(CatalogItem), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CatalogItem>> ItemByIdAsync(int id)
     {
         if (id <= 0)
@@ -197,6 +203,8 @@ public class CatalogController : ControllerBase
     // PUT api/v1/[controller]/items
     [HttpPut]
     [Route("items")]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<ActionResult> UpdateProductAsync([FromBody] CatalogItem productToUpdate)
     {
         var catalogItem = await _catalogDbContext.CatalogItems.SingleOrDefaultAsync(i => i.Id == productToUpdate.Id);
@@ -215,6 +223,7 @@ public class CatalogController : ControllerBase
     // POST api/v1/[controller]/items
     [HttpPost]
     [Route("items")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<ActionResult> CreateProductAsync([FromBody] CatalogItem product)
     {
         var item = new CatalogItem()
@@ -237,6 +246,8 @@ public class CatalogController : ControllerBase
     // DELETE api/v1/[controller]/items/{id}
     [HttpDelete]
     [Route("items/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteProductAsync(int id)
     {
         var product = await _catalogDbContext.CatalogItems.SingleOrDefaultAsync(x => x.Id == id);
