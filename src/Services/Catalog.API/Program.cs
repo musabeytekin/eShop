@@ -11,6 +11,7 @@ builder.Services.AddDbContexts(builder.Configuration);
 builder.Services.AddApplicationOptions(builder.Configuration);
 
 builder.Services.AddControllers();
+// builder.Services.AddControllers(options => options.SuppressAsyncSuffixInActionNames = false);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -18,14 +19,10 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 app.UseDefaultServices();
-app.MapPicApi();
-app.MapGrpcService<CatalogService>();
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
 app.MapControllers();
+app.MapPicApi();
+
+app.MapGrpcService<CatalogService>();
 
 using (var scope = app.Services.CreateScope())
 {

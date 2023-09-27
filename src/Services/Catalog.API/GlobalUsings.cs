@@ -2,7 +2,6 @@ global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.EntityFrameworkCore;
 global using Catalog.API.Infrastructure.EntityConfigurations;
 global using Catalog.API.Model;
-global using Catalog.API.Extensions;
 global using Grpc.Core;
 global using Catalog.API.Infrastructure;
 global using Catalog.API;

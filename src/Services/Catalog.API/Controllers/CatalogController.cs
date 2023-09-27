@@ -72,10 +72,10 @@ public class CatalogController : ControllerBase
     }
 
     // GET api/v1/[controller]/items/{id}
-
     [HttpGet]
     [Route("items/{id:int}")]
-    public async Task<IActionResult> ItemByIdAsync(int id)
+    [ActionName("ItemByIdAsync")]
+    public async Task<ActionResult<CatalogItem>> ItemByIdAsync(int id)
     {
         if (id <= 0)
         {
@@ -84,15 +84,15 @@ public class CatalogController : ControllerBase
 
         var item = await _catalogDbContext.CatalogItems.SingleOrDefaultAsync(ci => ci.Id == id);
         var baseUri = _settings.PicBaseUrl;
-        
+
         item.FillProductUrl(baseUri);
 
         if (item != null)
-            return Ok(item);
+            return item;
 
         return NotFound();
     }
-    
+
     // GET api/v1/[controller]/items/withname/{name}
     [HttpGet]
     [Route("items/withname/{name:minlength(1)}")]
@@ -116,11 +116,12 @@ public class CatalogController : ControllerBase
 
         return Ok(model);
     }
-    
+
     // GET api/v1/[controller]/items/type/1/brand[?pageSize=3&pageIndex=10]
     [HttpGet]
     [Route("items/type/{catalogTypeId}/brand/{catalogBrandId:int?}")]
-    public async Task<ActionResult<PaginatedItemsViewModel<CatalogItem>>> ItemsByTypeIdAndBrandIdAsync(int catalogTypeId, int? catalogBrandId, [FromQuery] int pageSize = 10, [FromQuery] int pageIndex = 0)
+    public async Task<ActionResult<PaginatedItemsViewModel<CatalogItem>>> ItemsByTypeIdAndBrandIdAsync(
+        int catalogTypeId, int? catalogBrandId, [FromQuery] int pageSize = 10, [FromQuery] int pageIndex = 0)
     {
         // IQueryable to hold the root query, because the query needs to be built dynamically based on the presence of catalogBrandId
         // root = SELECT * FROM CatalogItems
@@ -150,11 +151,12 @@ public class CatalogController : ControllerBase
 
         return new PaginatedItemsViewModel<CatalogItem>(pageIndex, pageSize, totalItems, itemsOnPage);
     }
-    
+
     // GET api/v1/[controller]/items/type/all/brand[?pageSize=3&pageIndex=10]
     [HttpGet]
     [Route("items/type/all/brand/{catalogBrandId:int?}")]
-    public async Task<ActionResult<PaginatedItemsViewModel<CatalogItem>>> ItemsByBrandIdAsync(int? catalogBrandId, [FromQuery] int pageSize = 10, [FromQuery] int pageIndex = 0)
+    public async Task<ActionResult<PaginatedItemsViewModel<CatalogItem>>> ItemsByBrandIdAsync(int? catalogBrandId,
+        [FromQuery] int pageSize = 10, [FromQuery] int pageIndex = 0)
     {
         var root = (IQueryable<CatalogItem>)_catalogDbContext.CatalogItems;
 
@@ -175,7 +177,7 @@ public class CatalogController : ControllerBase
 
         return new PaginatedItemsViewModel<CatalogItem>(pageIndex, pageSize, totalItems, itemsOnPage);
     }
-    
+
     // GET api/v1/[controller]/CatalogTypes
     [HttpGet]
     [Route("catalogtypes")]
@@ -183,7 +185,7 @@ public class CatalogController : ControllerBase
     {
         return await _catalogDbContext.CatalogTypes.ToListAsync();
     }
-    
+
     // GET api/v1/[controller]/CatalogBrands
     [HttpGet]
     [Route("catalogbrands")]
@@ -191,8 +193,63 @@ public class CatalogController : ControllerBase
     {
         return await _catalogDbContext.CatalogBrands.ToListAsync();
     }
-    
 
+    // PUT api/v1/[controller]/items
+    [HttpPut]
+    [Route("items")]
+    public async Task<ActionResult> UpdateProductAsync([FromBody] CatalogItem productToUpdate)
+    {
+        var catalogItem = await _catalogDbContext.CatalogItems.SingleOrDefaultAsync(i => i.Id == productToUpdate.Id);
+        if (catalogItem == null)
+        {
+            return NotFound(new { Message = $"$Item with id {productToUpdate.Id} not found" });
+        }
+
+        catalogItem = productToUpdate;
+        _catalogDbContext.CatalogItems.Update(catalogItem);
+        await _catalogDbContext.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(ItemByIdAsync), new { id = productToUpdate.Id }, null);
+    }
+
+    // POST api/v1/[controller]/items
+    [HttpPost]
+    [Route("items")]
+    public async Task<ActionResult> CreateProductAsync([FromBody] CatalogItem product)
+    {
+        var item = new CatalogItem()
+        {
+            Name = product.Name,
+            Description = product.Description,
+            Price = product.Price,
+            PictureFileName = product.PictureFileName,
+            CatalogTypeId = product.CatalogTypeId,
+            CatalogBrandId = product.CatalogBrandId
+        };
+
+        _catalogDbContext.CatalogItems.Add(item);
+
+        await _catalogDbContext.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(ItemByIdAsync), new { id = item.Id }, null);
+    }
+
+    // DELETE api/v1/[controller]/items/{id}
+    [HttpDelete]
+    [Route("items/{id}")]
+    public async Task<ActionResult> DeleteProductAsync(int id)
+    {
+        var product = await _catalogDbContext.CatalogItems.SingleOrDefaultAsync(x => x.Id == id);
+        if (product == null)
+        {
+            return NotFound();
+        }
+
+        _catalogDbContext.CatalogItems.Remove(product);
+        await _catalogDbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
 
     private List<CatalogItem> ChangeUriPlaceholder(List<CatalogItem> items)
     {
