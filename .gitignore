@@ -6,9 +6,10 @@ riderModule.iml
 src/Services/Identity/Identity.API/updateUI.ps1
 */obj/
 */bin/
-
+*DS_Store*
 .vs
 .idea
+
 
 ###################
 # compiled source #

@@ -1,6 +1,3 @@
-using System.Text.Json;
-using Services.Common;
-
 namespace Basket.API.Repositories;
 
 public class RedisBasketRepository : IBasketRepository
@@ -9,11 +6,11 @@ public class RedisBasketRepository : IBasketRepository
     private readonly ConnectionMultiplexer _redis;
     private readonly IDatabase _database;
 
-    public RedisBasketRepository(ILogger<RedisBasketRepository> logger, ConnectionMultiplexer redis, IDatabase database)
+    public RedisBasketRepository(ILogger<RedisBasketRepository> logger, ConnectionMultiplexer redis)
     {
         _logger = logger;
         _redis = redis;
-        _database = database;
+        _database = redis.GetDatabase();
     }
 
     public async Task<CustomerBasket?> GetBasketAsync(string customerId)
@@ -21,13 +18,11 @@ public class RedisBasketRepository : IBasketRepository
         var data = await _database.StringGetAsync(customerId);
 
         if (data.IsNullOrEmpty)
-        {
             return null;
-        }
 
         return JsonSerializer.Deserialize<CustomerBasket>(data, JsonDefaults.CaseInsensitiveOptions);
     }
-    
+
 
     public IEnumerable<string>? GetUsers()
     {
@@ -39,13 +34,14 @@ public class RedisBasketRepository : IBasketRepository
 
     public async Task<CustomerBasket?> UpdateBasketAsync(CustomerBasket basket)
     {
-        var created = await _database.StringSetAsync(basket.BuyerId, JsonSerializer.Serialize(basket, JsonDefaults.CaseInsensitiveOptions));
+        var created = await _database.StringSetAsync(basket.BuyerId,
+            JsonSerializer.Serialize(basket, JsonDefaults.CaseInsensitiveOptions));
         if (!created)
         {
             _logger.LogInformation("Problem occur persisting the item");
             return null;
         }
-        
+
         _logger.LogInformation("Basket item persisted successfully");
 
         return await GetBasketAsync(basket.BuyerId);
