@@ -1,17 +1,12 @@
-using Catalog.API.Apis;
-using Catalog.API.Grpc;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 builder.Services.AddGrpc();
+builder.Services.AddControllers();
 
 builder.Services.AddDbContexts(builder.Configuration);
-
 builder.Services.AddApplicationOptions(builder.Configuration);
-
-builder.Services.AddControllers();
-// builder.Services.AddControllers(options => options.SuppressAsyncSuffixInActionNames = false);
+builder.Services.AddHealthChecks(builder.Configuration);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

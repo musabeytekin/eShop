@@ -6,6 +6,8 @@ global using Grpc.Core;
 global using Catalog.API.Infrastructure;
 global using Catalog.API;
 global using Catalog.API.Extensions;
+global using Catalog.API.Apis;
+global using Catalog.API.Grpc;
 global using Services.Common;
 global using Microsoft.EntityFrameworkCore.Infrastructure;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;

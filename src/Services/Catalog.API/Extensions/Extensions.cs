@@ -1,3 +1,6 @@
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+
 namespace Catalog.API.Extensions;
 
 public static class Extensions
@@ -55,6 +58,16 @@ public static class Extensions
                 
             };
         });
+        return services;
+    }
+
+    public static IServiceCollection AddHealthChecks(this IServiceCollection services, IConfiguration configuration)
+    {
+        var hcBuilder = services.AddHealthChecks();
+        hcBuilder.AddSqlServer(_ => configuration.GetRequiredConnectionString("CatalogDB"),
+            name: "CatalogDB-check",
+            tags: new string[] { "ready" });
+
         return services;
     }
 }

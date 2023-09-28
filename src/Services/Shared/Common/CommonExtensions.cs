@@ -1,6 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -73,6 +76,7 @@ namespace Services.Common
             }
 
             app.UseDefaultOpenApi(app.Configuration);
+            app.MapDefaultHealthChecks();
             return app;
         }
 
@@ -125,6 +129,20 @@ namespace Services.Common
             app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
 
             return app;
+        }
+        
+        public static void MapDefaultHealthChecks(this IEndpointRouteBuilder routes)
+        {
+            routes.MapHealthChecks("/hc", new HealthCheckOptions()
+            {
+                Predicate = _ => true,
+                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            });
+
+            routes.MapHealthChecks("/liveness", new HealthCheckOptions
+            {
+                Predicate = r => r.Name.Contains("self")
+            });
         }
     }
 }
