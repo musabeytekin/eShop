@@ -71,7 +71,7 @@ namespace Identity.API.Persistence
 
                 if (!(await configurationDbContext.Clients.AnyAsync()))
                 {
-                    configurationDbContext.Clients.AddRange(Config.Clients.Select(client => client.ToEntity()));
+                    configurationDbContext.Clients.AddRange(Config.Clients(configuration).Select(client => client.ToEntity()));
                     await configurationDbContext.SaveChangesAsync();
                 }
 

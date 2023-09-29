@@ -102,14 +102,58 @@ namespace Services.Common
                     Description = document.GetRequiredValue("Description")
                 });
 
-                // TODO: Add support for security
+                // TODO: Add support for security - Done
+
+                var identitySection = configuration.GetSection("Identity");
+
+                // if identity section not found, return the services, no authentication is needed
+
+                if (!identitySection.Exists())
+                {
+                    return;
+                }
+
+                var identityUrl = identitySection.GetRequiredValue("Url");
+                var scopes = identitySection.GetRequiredSection("Scopes")
+                    .GetChildren()
+                    .ToDictionary(p => p.Key, p => p.Value);
+
+                options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme()
+                {
+                    Type = SecuritySchemeType.OAuth2,
+                    Flows = new OpenApiOAuthFlows()
+                    {
+                        Implicit = new OpenApiOAuthFlow()
+                        {
+                            AuthorizationUrl = new Uri($"{identityUrl}/connect/authorize"),
+                            TokenUrl = new Uri($"{identityUrl}/connect/token"),
+                            Scopes = scopes
+                        }
+                    }
+                });
+                options.OperationFilter<AuthorizeCheckOperationFilter>();
             });
         }
 
         public static IApplicationBuilder UseDefaultOpenApi(this WebApplication app, IConfiguration configuration)
         {
+            
+            // "OpenApi": {
+            //     "Endpoint": {
+            //         "Name": "Basket.API V1"
+            //     },
+            //     "Document": {
+            //         "Description": "The Basket Service HTTP API",
+            //         "Title": "eShop - Basket HTTP API",
+            //         "Version": "v1"
+            //     },
+            //     "Auth": {
+            //         "ClientId": "basketswaggerui",
+            //         "AppName": "Basket Swagger UI"
+            //     }
+            // }
             var openApiSection = configuration.GetSection("OpenApi");
-
+            var authSection = openApiSection.GetSection("Auth");
             if (!openApiSection.Exists())
             {
                 return app;
@@ -124,13 +168,20 @@ namespace Services.Common
                 var swaggerUrl = url ?? "/swagger/v1/swagger.json";
 
                 setup.SwaggerEndpoint(swaggerUrl, endpoint.GetRequiredValue("Name"));
+                if (authSection.Exists())
+                {
+                    setup.OAuthClientId(authSection.GetRequiredValue("ClientId"));
+                    setup.OAuthAppName(authSection.GetRequiredValue("AppName"));
+                }
             });
 
+            
             app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
 
+           
             return app;
         }
-        
+
         public static void MapDefaultHealthChecks(this IEndpointRouteBuilder routes)
         {
             routes.MapHealthChecks("/hc", new HealthCheckOptions()

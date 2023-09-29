@@ -5,6 +5,7 @@
 using IdentityServer4.Models;
 using System.Collections.Generic;
 using IdentityServer4;
+using Microsoft.Extensions.Configuration;
 
 namespace Identity.API.Configuration
 {
@@ -13,7 +14,8 @@ namespace Identity.API.Configuration
         public static IEnumerable<ApiResource> Apis =>
             new ApiResource[]
             {
-                new ApiResource(IdentityServerConstants.LocalApi.ScopeName)
+                new ApiResource(IdentityServerConstants.LocalApi.ScopeName),
+                new ApiResource("basket", "Basket API")
             };
 
         public static IEnumerable<IdentityResource> IdentityResources =>
@@ -27,10 +29,11 @@ namespace Identity.API.Configuration
         public static IEnumerable<ApiScope> ApiScopes =>
             new ApiScope[]
             {
-                new ApiScope(IdentityServerConstants.LocalApi.ScopeName)
+                new ApiScope(IdentityServerConstants.LocalApi.ScopeName),
+                new ApiScope("basket")
             };
 
-        public static IEnumerable<Client> Clients =>
+        public static IEnumerable<Client> Clients(IConfiguration configuration) =>
             new Client[]
             {
                 new Client
@@ -61,6 +64,22 @@ namespace Identity.API.Configuration
                     RefreshTokenExpiration = TokenExpiration.Absolute,
                     AbsoluteRefreshTokenLifetime = 1 * 60 * 60 * 24 * 30, // 30 days
                     RefreshTokenUsage = TokenUsage.ReUse
+                },
+                
+                new Client()
+                {
+                    ClientId = "basketswaggerui",
+                    ClientName = "Basket Swagger UI",
+                    AllowedGrantTypes = GrantTypes.Implicit,
+                    AllowAccessTokensViaBrowser = true,
+
+                    RedirectUris = { $"{configuration["BasketApiClient"]}/swagger/oauth2-redirect.html" },
+                    PostLogoutRedirectUris = { $"{configuration["BasketApiClient"]}/swagger/" },
+
+                    AllowedScopes =
+                    {
+                        "basket"
+                    }
                 }
             };
     }
