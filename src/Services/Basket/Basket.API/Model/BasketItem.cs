@@ -1,5 +1,3 @@
-
-
 namespace Basket.API.Model;
 
 public class BasketItem : IValidatableObject
