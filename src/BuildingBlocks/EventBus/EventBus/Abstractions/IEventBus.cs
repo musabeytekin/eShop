@@ -1,5 +1,3 @@
-using EventBus.Events;
-
 namespace EventBus.Abstractions;
 
 public interface IEventBus
