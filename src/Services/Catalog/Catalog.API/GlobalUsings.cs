@@ -9,6 +9,8 @@ global using Catalog.API.Extensions;
 global using Catalog.API.Apis;
 global using Catalog.API.Grpc;
 global using Services.Common;
+global using EventBus.Abstractions;
+global using EventBus.Events;
 global using Microsoft.EntityFrameworkCore.Infrastructure;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
 global using Microsoft.Data.SqlClient;
