@@ -13,9 +13,5 @@
     </ItemGroup>
 
 
-    <ItemGroup>
-      <Folder Include="AggregatesModel\BuyerAggregate\" />
-      <Folder Include="AggregatesModel\OrderAggregate\" />
-    </ItemGroup>
 
 </Project>
